@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": [],
+  "keywords": ["minimal", "minimalist", "http-proxy", "node", "vanilla"],
   "author": "Simon Cheng",
   "license": "MIT"
 }
