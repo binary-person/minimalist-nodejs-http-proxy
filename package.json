@@ -1,0 +1,12 @@
+{
+  "name": "minimalist-nodejs-http-proxy",
+  "version": "1.0.0",
+  "description": "Super bare, light-weight, no-libraries http proxy",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "Simon Cheng",
+  "license": "MIT"
+}
