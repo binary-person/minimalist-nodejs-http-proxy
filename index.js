@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const net = require('net');
 
 const port = process.env.PORT || process.argv[2] || 8080;
@@ -20,21 +21,34 @@ var server = http.createServer(function (client_req, client_res) {
     }
     options.method = client_req.method;
     options.headers = client_req.headers;
+    var protocol = options.protocol.slice(0, -1).toUpperCase();
 
-    log('HTTP request from ' + client_req.socket.localAddress + ' made a request to ' + client_req.url);
+    log(protocol + ' request from ' + client_req.socket.localAddress + ' made a request to ' + client_req.url);
 
-    var proxy = http.request(options, function (res) {
-        client_res.writeHead(res.statusCode, res.headers)
-        res.pipe(client_res, {
-            end: true
+    var proxy;
+
+    if(protocol === 'HTTP'){
+        proxy = http.request(options, function (res) {
+            client_res.writeHead(res.statusCode, res.headers)
+            res.pipe(client_res, {
+                end: true
+            });
         });
-    });
+    }else{
+        options.rejectUnauthorized = false;
+        proxy = https.request(options, function (res) {
+            client_res.writeHead(res.statusCode, res.headers)
+            res.pipe(client_res, {
+                end: true
+            });
+        });
+    }
 
     proxy.on('error', function (err) {
-        log('Errored HTTP request while trying to connect to ' + client_req.url + ' ' + err, client_res);
+        log('Errored ' + protocol + ' request while trying to connect to ' + client_req.url + ' ' + err, client_res);
     });
     client_req.on('error', function (err) {
-        log('Errored HTTP client socket: ' + err);
+        log('Errored ' + protocol + ' client socket: ' + err);
     });
 
     client_req.pipe(proxy, {
