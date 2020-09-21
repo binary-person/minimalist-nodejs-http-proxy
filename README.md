@@ -11,7 +11,7 @@ Only `node`. Nothing else required. Not even `npm install`.
 ## Usage
 Syntax:
 ```
-node index.js PORT ?verbose
+node index.js PORT ?verbose ?username ?password
 ```
 
 An example of the proxy server running on port 8000 without verbose would be
@@ -23,3 +23,9 @@ An example of the proxy server running on port 8888 with verbose would be
 ```
 node index.js 8888 verbose
 ```
+
+An example of the proxy server running on port 8888 without verbose with authentication would be
+```
+node index.js 8888 noverbose myusername mypassword
+```
+
