@@ -9,6 +9,9 @@ var log = function (data, socket = { end: function () { } }) {
     if(verbose) console.log(data);
     socket.end(data);
 };
+function getIP(req){
+    return (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').split(',')[0].trim();
+}
 
 var server = http.createServer(function (client_req, client_res) {
     var options;
@@ -23,7 +26,7 @@ var server = http.createServer(function (client_req, client_res) {
     options.headers = client_req.headers;
     var protocol = options.protocol.slice(0, -1).toUpperCase();
 
-    log(protocol + ' request from ' + client_req.socket.localAddress + ' made a request to ' + client_req.url);
+    log(protocol + ' request from ' + getIP(client_req) + ' made a request to ' + client_req.url);
 
     var proxy;
 
@@ -56,8 +59,18 @@ var server = http.createServer(function (client_req, client_res) {
     });
 });
 server.on('connect', function (req, clientSocket, head) {
-    var parsed = new URL('http://' + req.url);
-    log('CONNECT request from ' + req.socket.localAddress + ' made a request to ' + parsed.hostname);
+    var parsed;
+    if(req.url.includes('::')) req.url = '[' + req.url + ']';
+    try {
+        parsed = new URL('http://' + req.url);
+    }catch(e) {
+        clientSocket.write('HTTP/1.1 400 Bad Request\r\n' +
+            'Proxy-agent: minimalist-nodejs-http-proxy\r\n' +
+            '\r\n');
+        log('Malformed CONNECT request: ' + req.url, clientSocket);
+        return;
+    }
+    log('CONNECT request from ' + getIP(req) + ' made a request to ' + parsed.hostname);
     const serverSocket = net.connect(parsed.port || 80, parsed.hostname, function () {
         clientSocket.write('HTTP/1.1 200 Connection Established\r\n' +
             'Proxy-agent: minimalist-nodejs-http-proxy\r\n' +
